@@ -181,6 +181,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board b,int depth,
             b._do_move(m);
             b._flip_player();
             std::pair<std::pair<long long, short int>, U16> val;
+            prev_boards.push_back(all_boards_to_str(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),all_boards_to_str(b)) == 2){
                 val = {{-300,-depth},0}; // TODO: Draw heuristic
             }
@@ -188,6 +189,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board b,int depth,
                 val = minimax(b, depth + 1,
                                 false, alpha, beta);
             }
+            prev_boards.pop_back();
             b._undo_last_move(m);
             b._flip_player();
             if(best < val) {
@@ -211,6 +213,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board b,int depth,
             
             b._do_move(m);
             b._flip_player();
+            prev_boards.push_back(all_boards_to_str(b));
             std::pair<std::pair<long long, short int>, U16> val;
             if(std::count(prev_boards.begin(),prev_boards.end(),all_boards_to_str(b)) == 2){
                 val = {{-300, -depth}, 0}; // Adversary is a pussy
@@ -219,6 +222,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board b,int depth,
                 val = minimax(b, depth + 1,
                                 true, alpha, beta);
             }
+            prev_boards.pop_back();
             b._undo_last_move(m);
             b._flip_player();
             if(best > val) {
