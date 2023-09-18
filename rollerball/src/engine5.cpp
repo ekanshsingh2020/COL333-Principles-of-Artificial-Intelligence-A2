@@ -384,14 +384,15 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
     // leaf node is reached
     auto moves = b.get_legal_moves();
     if(moves.size() == 0 && b.in_check()) {
-        return (maximizingPlayer) ? std::make_pair(std::make_pair(MIN,-depth),0) : std::make_pair(std::make_pair(MAX,-depth),0);
+        return (maximizingPlayer) ? std::make_pair(std::make_pair(MIN,depth),0) : std::make_pair(std::make_pair(MAX,-depth),0);
     }
     else if(moves.size() == 0){
-        return (maximizingPlayer) ? std::make_pair(std::make_pair(-300,-depth),0) : std::make_pair(std::make_pair(-300,-depth),0);
+        return (maximizingPlayer) ? std::make_pair(std::make_pair(draw_heuristic(b),-depth),0) : std::make_pair(std::make_pair(-draw_heuristic(b),-depth),0);
     }
 
     if (depth == 3) {
-        return {{heuristic(b),-depth}, 0};
+        auto value = heuristic(b);
+        return (value > 0) ? std::make_pair(std::make_pair(value,-depth), 0) : std::make_pair(std::make_pair(value , depth), 0);
     }
  
 
