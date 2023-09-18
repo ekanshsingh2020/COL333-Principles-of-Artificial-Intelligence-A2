@@ -316,7 +316,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
         return (maximizingPlayer) ? std::make_pair(std::make_pair(-300,-depth),0) : std::make_pair(std::make_pair(-300,-depth),0);
     }
 
-    if (depth == 3) {
+    if (depth == 5) {
         return {{heuristic(b),-depth}, 0};
     }
  
