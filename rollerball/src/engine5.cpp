@@ -384,21 +384,30 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
     // leaf node is reached
     auto moves = b.get_legal_moves();
     if(moves.size() == 0 && b.in_check()) {
-        return (maximizingPlayer) ? std::make_pair(std::make_pair(MIN,depth),0) : std::make_pair(std::make_pair(MAX,-depth),0);
+        if(maximizingPlayer)
+            return std::make_pair(std::make_pair(MIN,depth),0);
+        else
+            return std::make_pair(std::make_pair(MAX,-depth),0);
     }
     else if(moves.size() == 0){
-        return (maximizingPlayer) ? std::make_pair(std::make_pair(draw_heuristic(b),-depth),0) : std::make_pair(std::make_pair(-draw_heuristic(b),-depth),0);
+        if(maximizingPlayer)
+            return std::make_pair(std::make_pair(draw_heuristic(b),-depth),0);
+        else
+            return std::make_pair(std::make_pair(-draw_heuristic(b),-depth),0);
     }
 
     if (depth == 3) {
         auto value = heuristic(b);
-        return (value > 0) ? std::make_pair(std::make_pair(value,-depth), 0) : std::make_pair(std::make_pair(value , depth), 0);
+        if( value>0 )
+            return std::make_pair(std::make_pair(value,-depth), 0);
+        else
+            return std::make_pair(std::make_pair(value ,depth), 0);
     }
  
 
     if (maximizingPlayer)
     {
-        std::pair<std::pair<long long, short int>, U16>  best = {{MIN,100}, *moves.begin()};
+        std::pair<std::pair<long long, short int>, U16>  best = {{MIN,-100}, *moves.begin()};
  
         // Recur for left and
         // right children
@@ -424,7 +433,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
             b.data.last_killed_piece_idx = last_killed_data.second;
             
             if(best < val) {
-                best = val;
+                best.first = val.first;
                 best.second = m;
             }
             alpha = std::max(alpha, best.first.first);
@@ -438,7 +447,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
     }
     else
     {
-        std::pair<std::pair<long long, short int>, U16>  best = {{MAX,-100}, *moves.begin()};
+        std::pair<std::pair<long long, short int>, U16>  best = {{MAX,100}, *moves.begin()};
 
         for (auto m : moves) {
             
@@ -462,7 +471,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
             
 
             if(best > val) {
-                best = val;
+                best.first = val.first;
                 best.second = m;
             }
             beta = std::min(beta, best.first.first);
@@ -500,7 +509,11 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = moves[0];
 
-        this->best_move = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx)).second;
+        auto search_result = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+
+        this->best_move = search_result.second;
+
+        std::cout<<search_result.first.first<<" "<<search_result.first.second<<std::endl;
 
         attacking_nature+=2;
         defending_nature-=2;
