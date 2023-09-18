@@ -133,14 +133,17 @@ void undo_last_move(Board &b,U16 move) {
 
 }
 
-const long long MAX = 1000;
-const long long MIN = -1000;
+const int64_t MAX = 100000;
+const int64_t MIN = -100000;
+
+int64_t attacking_nature = 40;
+int64_t defending_nature = 60;
 
 std::vector<std::string> prev_boards;
 
 
 long long heuristic(Board& b) {
-    long long score = 0;
+    int64_t score = 0;
 
     auto opp_legal_moves = b.get_legal_moves();
     
@@ -161,143 +164,214 @@ long long heuristic(Board& b) {
 
     if(b.data.player_to_play == BLACK) {
         if(under_threat(my_attack_positions,b.data.b_king)){
-            score += 100;
+            score += 100 * attacking_nature;
         }
         if(b.data.b_rook_ws == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.b_rook_ws)){
-            score += 5;
+            score += 5 * attacking_nature;
         }
         if(b.data.b_rook_bs == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.b_rook_bs)){
-            score += 5;
+            score += 5 * attacking_nature;
         }
         if(b.data.b_bishop == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.b_bishop)){
-            score += 3;
+            score += 3 * attacking_nature;
         }
         if(b.data.b_pawn_ws == DEAD){
-            score += 10;
+            score += 10 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.b_pawn_ws)){
-            score += 1;
+            score += 1 * attacking_nature;
         }
         if(b.data.b_pawn_bs == DEAD){
-            score += 10;
+            score += 10 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.b_pawn_bs)){
-            score += 1;
+            score += 1 * attacking_nature;
         }      
         // if(under_threat(opp_attack_positions,b.data.w_king)){ // Should never happen
         //     score -= 100;
         // }
         if(b.data.w_rook_ws == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.w_rook_ws)){
-            score -= 5;
+            score -= 5 * defending_nature;
         }
         if(b.data.w_rook_bs == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.w_rook_bs)){
-            score -= 5;
+            score -= 5 * defending_nature;
         }
         if(b.data.w_bishop == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.w_bishop)){
-            score -= 3;
+            score -= 3 * defending_nature;
         }
         if(b.data.w_pawn_ws == DEAD){
-            score -= 10;
+            score -= 10 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.w_pawn_ws)){
-            score -= 1;
+            score -= 1 * defending_nature;
         }
         if(b.data.w_pawn_bs == DEAD){
-            score -= 10;
+            score -= 10 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.w_pawn_bs)){
-            score -= 1;
+            score -= 1 * defending_nature;
         }        
 
 
     }
     else{
         if(under_threat(my_attack_positions,b.data.w_king)){
-            score += 100;
+            score += 100 * attacking_nature;
         }
         if(b.data.w_rook_ws == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.w_rook_ws)){
-            score += 5;
+            score += 5 * attacking_nature;
         }
         if(b.data.w_rook_bs == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.w_rook_bs)){
-            score += 5;
+            score += 5 * attacking_nature;
         }
         if(b.data.w_bishop == DEAD){
-            score += 20;
+            score += 20 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.w_bishop)){
-            score += 3;
+            score += 3 * attacking_nature;
         }
         if(b.data.w_pawn_ws == DEAD){
-            score += 10;
+            score += 10 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.w_pawn_ws)){
-            score += 1;
+            score += 1 * attacking_nature;
         }
         if(b.data.w_pawn_bs == DEAD){
-            score += 10;
+            score += 10 * attacking_nature;
         }
         else if(under_threat(my_attack_positions,b.data.w_pawn_bs)){
-            score += 1;
+            score += 1 * attacking_nature;
         }      
         // if(under_threat(opp_attack_positions,b.data.b_king)){ // Should never happen
         //     score -= 100;
         // }
         if(b.data.b_rook_ws == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.b_rook_ws)){
-            score -= 5;
+            score -= 5 * defending_nature;
         }
         if(b.data.b_rook_bs == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.b_rook_bs)){
-            score -= 5;
+            score -= 5 * defending_nature;
         }
         if(b.data.b_bishop == DEAD){
-            score -= 20;
+            score -= 20 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.b_bishop)){
-            score -= 3;
+            score -= 3 * defending_nature;
         }
         if(b.data.b_pawn_ws == DEAD){
-            score -= 10;
+            score -= 10 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.b_pawn_ws)){
-            score -= 1;
+            score -= 1 * defending_nature;
         }
         if(b.data.b_pawn_bs == DEAD){
-            score -= 10;
+            score -= 10 * defending_nature;
         }
         else if(under_threat(opp_attack_positions,b.data.b_pawn_bs)){
-            score -= 1;
+            score -= 1 * defending_nature;
         }        
     }
     return score;
+}
+
+int64_t draw_heuristic(Board &b){
+    int64_t want_to_draw = 0;
+    if(b.data.player_to_play == WHITE){
+        if(b.data.w_rook_ws == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.w_rook_bs == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.w_bishop == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.w_pawn_ws == DEAD){
+            want_to_draw += 10;
+        }
+        if(b.data.w_pawn_bs == DEAD){
+            want_to_draw += 10;
+        }
+        if(b.data.b_rook_ws == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.b_rook_bs == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.b_bishop == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.b_pawn_ws == DEAD){
+            want_to_draw -= 10;
+        }
+        if(b.data.b_pawn_bs == DEAD){
+            want_to_draw -= 10;
+        }
+
+    }
+    else{
+        if(b.data.b_rook_ws == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.b_rook_bs == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.b_bishop == DEAD){
+            want_to_draw += 20;
+        }
+        if(b.data.b_pawn_ws == DEAD){
+            want_to_draw += 10;
+        }
+        if(b.data.b_pawn_bs == DEAD){
+            want_to_draw += 10;
+        }
+        if(b.data.w_rook_ws == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.w_rook_bs == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.w_bishop == DEAD){
+            want_to_draw -= 20;
+        }
+        if(b.data.w_pawn_ws == DEAD){
+            want_to_draw -= 10;
+        }
+        if(b.data.w_pawn_bs == DEAD){
+            want_to_draw -= 10;
+        }
+
+    }
+    return want_to_draw * 50;
 }
 
 std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
@@ -316,7 +390,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
         return (maximizingPlayer) ? std::make_pair(std::make_pair(-300,-depth),0) : std::make_pair(std::make_pair(-300,-depth),0);
     }
 
-    if (depth == 5) {
+    if (depth == 3) {
         return {{heuristic(b),-depth}, 0};
     }
  
@@ -333,7 +407,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
             std::pair<std::pair<long long, short int>, U16> val;
             prev_boards.push_back(board_encode(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
-                val = {{-300,-depth},0}; // TODO: Draw heuristic
+                val = {{draw_heuristic(b),-depth},0}; //
             }
             else{
                 val = minimax(b, depth + 1,
@@ -371,7 +445,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
             prev_boards.push_back(board_encode(b));
             std::pair<std::pair<long long, short int>, U16> val;
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
-                val = {{-300, -depth}, 0}; // Adversary is a pussy
+                val = {{-draw_heuristic(b), -depth}, 0}; 
             }
             else{
                 val = minimax(b, depth + 1,
@@ -427,6 +501,10 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx)).second;
 
+        attacking_nature+=2;
+        defending_nature-=2;
+        defending_nature = std::max(defending_nature,int64_t(20));
+        attacking_nature = std::min(attacking_nature,int64_t(80));
 
         if(this->best_move != 0){
             search_board.do_move(this->best_move);

@@ -133,14 +133,14 @@ void undo_last_move(Board &b,U16 move) {
 
 }
 
-const long long MAX = 1000;
-const long long MIN = -1000;
+const int64_t MAX = 100000;
+const int64_t MIN = -100000;
 
 std::vector<std::string> prev_boards;
 
 
 long long heuristic(Board& b) {
-    long long score = 0;
+    int64_t score = 0;
 
     auto opp_legal_moves = b.get_legal_moves();
     
