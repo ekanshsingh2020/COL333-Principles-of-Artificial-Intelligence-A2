@@ -4,3 +4,4 @@
 - How to change stuff when number of moves around 100
 - How to allot scores
 - Adaptive nature of attack and defence, based on board status
+- Need to do something for the special position of rook
