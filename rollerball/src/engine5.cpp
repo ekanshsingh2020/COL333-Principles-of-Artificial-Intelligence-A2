@@ -140,14 +140,14 @@ void undo_last_move(Board &b,U16 move) {
 
 }
 
-const long long MAX = 1000;
-const long long MIN = -1000;
+const int64_t MAX = 1000;
+const int64_t MIN = -1000;
 
 std::vector<std::string> prev_boards;
 
 
-long long heuristic(Board& b) {
-    long long score = 0;
+int64_t heuristic(Board& b) {
+    int64_t score = 0;
 
     auto opp_legal_moves = b.get_legal_moves();
     
@@ -307,10 +307,10 @@ long long heuristic(Board& b) {
     return score;
 }
 
-std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
+std::pair<std::pair<int64_t, int8_t>,U16> minimax(Board &b,int depth,
             bool maximizingPlayer,
-            long long  alpha,
-            long long beta,
+            int64_t  alpha,
+            int64_t beta,
             std::pair<U8,int> last_killed_data)
 {
     // Terminating condition. i.e
@@ -330,14 +330,14 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
 
     if (maximizingPlayer)
     {
-        std::pair<std::pair<long long, short int>, U16>  best = {{MIN,100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int8_t>, U16>  best = {{MIN,100}, *moves.begin()};
  
         // Recur for left and
         // right children
         for (auto m : moves) {
             
             b.do_move(m);
-            std::pair<std::pair<long long, short int>, U16> val;
+            std::pair<std::pair<int64_t, int8_t>, U16> val;
             prev_boards.push_back(board_encode(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
                 val = {{-300,-depth},0}; // TODO: Draw heuristic
@@ -370,13 +370,13 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
     }
     else
     {
-        std::pair<std::pair<long long, short int>, U16>  best = {{MAX,-100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int8_t>, U16>  best = {{MAX,-100}, *moves.begin()};
 
         for (auto m : moves) {
             
             b.do_move(m);
             prev_boards.push_back(board_encode(b));
-            std::pair<std::pair<long long, short int>, U16> val;
+            std::pair<std::pair<int64_t, int8_t>, U16> val;
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
                 val = {{-300, -depth}, 0}; // Adversary is a pussy
             }
