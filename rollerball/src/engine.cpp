@@ -91,7 +91,7 @@ bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
     return false;
 
 }
-void undo_last_move_engine(Board &b,U16 move) {
+void undo_last_move(Board &b,U16 move) {
 
     U8 p0 = getp0(move);
     U8 p1 = getp1(move);
@@ -99,7 +99,6 @@ void undo_last_move_engine(Board &b,U16 move) {
 
     U8 piecetype = b.data.board_0[p1];
     U8 deadpiece = b.data.last_killed_piece;
-    b.data.last_killed_piece = 0;
 
     // scan and get piece from coord
     U8 *pieces = (U8*)(&(b.data));
@@ -111,15 +110,12 @@ void undo_last_move_engine(Board &b,U16 move) {
     }
     if (b.data.last_killed_piece_idx >= 0) {
         pieces[b.data.last_killed_piece_idx] = p1;
-        b.data.last_killed_piece_idx = -1;
     }
 
-    if (promo == PAWN_ROOK) {
-        piecetype = ((piecetype & (WHITE | BLACK)) ^ ROOK) | PAWN;
+    if (promo == PAWN_ROOK || promo == PAWN_BISHOP) {
+        piecetype = (piecetype & (WHITE | BLACK)) | PAWN;
     }
-    else if (promo == PAWN_BISHOP) {
-        piecetype = ((piecetype & (WHITE | BLACK)) ^ BISHOP) | PAWN;
-    }
+    
 
     b.data.board_0[p0]           = piecetype;
     b.data.board_90[cw_90[p0]]   = piecetype;
@@ -131,45 +127,20 @@ void undo_last_move_engine(Board &b,U16 move) {
     b.data.board_180[cw_180[p1]] = deadpiece;
     b.data.board_270[acw_90[p1]] = deadpiece;
 
-    // std::cout << "Undid last move\n";
-    // std::cout << all_boards_to_str(*this);
 
 
     return;
 
 }
 
-std::string all_boards_to_str_engine(const Board& b) {
-
-    std::string board_str(256, ' ');
-    std::string board_mask = ".......\n.......\n..   ..\n..   ..\n..   ..\n.......\n.......\n";
-
-    const U8 (*boards)[64] = &(b.data.board_0);
-
-    for (int b=0; b<4; b++) {
-        for (int i=0; i<56; i++) {
-            if (board_mask[i] == '\n' || board_mask[i] == ' ') continue;
-            board_str[(224-(i/8)*32) + b*8 + i%8] = piece_to_char(boards[b][i]);
-        }
-    }
-
-    for (int i=31; i<256; i+=32) {
-        board_str[i] = '\n';
-    }
-
-    return board_str.substr(32);
-}
-
-
-
-const long long MAX = 1000;
-const long long MIN = -1000;
+const int64_t MAX = 100000;
+const int64_t MIN = -100000;
 
 std::vector<std::string> prev_boards;
 
 
 long long heuristic(Board& b) {
-    long long score = 0;
+    int64_t score = 0;
 
     auto opp_legal_moves = b.get_legal_moves();
     
@@ -372,7 +343,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
 
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
 
-            undo_last_move_engine(b,m);
+            undo_last_move(b,m);
             
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
@@ -409,7 +380,7 @@ std::pair<std::pair<long long, short int>,U16> minimax(Board &b,int depth,
             prev_boards.pop_back();
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
             
-            undo_last_move_engine(b,m);
+            undo_last_move(b,m);
             
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
@@ -435,9 +406,6 @@ void Engine::find_best_move(const Board& b) {
     // pick a random move
     
     auto moveset = b.get_legal_moves();
-
-    std::string inistr=all_boards_to_str_engine(b);
-    
     if (moveset.size() == 0) {
         this->best_move = 0;
     }
@@ -458,16 +426,7 @@ void Engine::find_best_move(const Board& b) {
         this->best_move = moves[0];
 
         this->best_move = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx)).second;
-        std:: string newstr=all_boards_to_str_engine(search_board);
 
-        if(inistr!=newstr)
-        {
-            std::cout<<"Atif is wrong"<<std::endl;
-        }
-        else
-        {
-            std::cout<<"Atif is correct"<<std::endl;
-        }
 
         if(this->best_move != 0){
             search_board.do_move(this->best_move);
