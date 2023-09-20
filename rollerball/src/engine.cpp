@@ -112,8 +112,11 @@ void undo_last_move(Board &b,U16 move) {
         pieces[b.data.last_killed_piece_idx] = p1;
     }
 
-    if (promo == PAWN_ROOK || promo == PAWN_BISHOP) {
-        piecetype = (piecetype & (WHITE | BLACK)) | PAWN;
+    if (promo == PAWN_ROOK) {
+        piecetype = ((piecetype & (WHITE | BLACK)) ^ ROOK) | PAWN;
+    }
+    else if (promo == PAWN_BISHOP) {
+        piecetype = ((piecetype & (WHITE | BLACK)) ^ BISHOP) | PAWN;
     }
     
 
@@ -406,6 +409,7 @@ void Engine::find_best_move(const Board& b) {
     // pick a random move
     
     auto moveset = b.get_legal_moves();
+    
     if (moveset.size() == 0) {
         this->best_move = 0;
     }

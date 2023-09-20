@@ -82,6 +82,8 @@ std::string board_encode(const Board& b){
     return encoding;
 }
 
+
+
 bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
 
     if(std::count(opp_legal_moves.begin(),opp_legal_moves.end(), piece_pos)) {
@@ -112,8 +114,11 @@ void undo_last_move(Board &b,U16 move) {
         pieces[b.data.last_killed_piece_idx] = p1;
     }
 
-    if (promo == PAWN_ROOK || promo == PAWN_BISHOP) {
-        piecetype = (piecetype & (WHITE | BLACK)) | PAWN;
+    if (promo == PAWN_ROOK) {
+        piecetype = ((piecetype & (WHITE | BLACK)) ^ ROOK) | PAWN;
+    }
+    else if (promo == PAWN_BISHOP) {
+        piecetype = ((piecetype & (WHITE | BLACK)) ^ BISHOP) | PAWN;
     }
     
 
