@@ -14,12 +14,13 @@ PYTHON_VERSION=$(shell python -c "import sys; print('python' + '.'.join(sys.vers
 rollerball:
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball
+	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine5.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball5
 	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine_random.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_random
-
 rollerball_py:
 	mkdir -p bin
 	pip install -e .
 	LIBRARY_PATH=$(LIBRARYPATH) $(CC) $(CFLAGS) $(INCLUDES) -Wl,-rpath,$(LIBRARYPATH) `python3 -m pybind11 --includes` src/server.cpp src/board.cpp src/engine_py.cpp src/rollerball.cpp src/uciws.cpp -o bin/rollerball_py -I$(PYTHON_INCLUDE_PATH) -lpthread -l$(PYTHON_VERSION) -fPIC
+	
 
 package:
 	mkdir -p build
