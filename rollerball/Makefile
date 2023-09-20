@@ -14,6 +14,8 @@ PYTHON_VERSION=$(shell python -c "import sys; print('python' + '.'.join(sys.vers
 rollerball:
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball
+	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine5.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball5
+	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine_random.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_random
 
 rollerball_py:
 	mkdir -p bin

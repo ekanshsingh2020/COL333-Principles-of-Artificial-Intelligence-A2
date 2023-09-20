@@ -518,6 +518,9 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = search_result.second;
 
+        assert(all_boards_to_str(b) == all_boards_to_str(search_board));
+        assert(board_encode(b) == board_encode(search_board));
+
         std::cout<<search_result.first.first<<" "<<search_result.first.second<<std::endl;
 
         attacking_nature+=2;

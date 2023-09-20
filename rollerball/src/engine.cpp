@@ -431,6 +431,8 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx)).second;
 
+        assert(all_boards_to_str(b) == all_boards_to_str(search_board));
+        assert(board_encode(b) == board_encode(search_board));
 
         if(this->best_move != 0){
             search_board.do_move(this->best_move);
