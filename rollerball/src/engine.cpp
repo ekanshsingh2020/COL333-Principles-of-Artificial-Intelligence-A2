@@ -172,7 +172,7 @@ int64_t heuristic(Board& b) {
     if(b.data.player_to_play == BLACK) {
 
         // opponent pieces
-        if(under_threat(my_attack_positions,b.data.b_king)){
+        if(b.in_check()){
             score += 100 * attacking_nature;
         }
         if(b.data.b_rook_ws != DEAD){
@@ -304,7 +304,7 @@ int64_t heuristic(Board& b) {
     else{
 
         // opponent pieces
-        if(under_threat(my_attack_positions,b.data.w_king)){
+        if(b.in_check()){
             score += 100 * attacking_nature;
         }
         if(b.data.w_rook_ws != DEAD){
@@ -437,78 +437,134 @@ int64_t heuristic(Board& b) {
 int64_t draw_heuristic(Board &b){
     int64_t want_to_draw = 0;
     if(b.data.player_to_play == WHITE){
-        if(b.data.w_rook_ws == DEAD){
+        if(b.data.b_rook_ws != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.w_rook_bs == DEAD){
+        if(b.data.b_rook_bs != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.w_bishop == DEAD){
+        if(b.data.b_bishop != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.w_pawn_ws == DEAD){
+        if(b.data.b_pawn_ws != DEAD){
             want_to_draw += 10;
+            auto piecetype = b.data.board_0[b.data.b_pawn_ws];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw += 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw += 10;
+            }
         }
-        if(b.data.w_pawn_bs == DEAD){
+        if(b.data.b_pawn_bs != DEAD){
             want_to_draw += 10;
+            auto piecetype = b.data.board_0[b.data.b_pawn_bs];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw += 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw += 10;
+            }
         }
-        if(b.data.b_rook_ws == DEAD){
+        if(b.data.w_rook_ws != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.b_rook_bs == DEAD){
+        if(b.data.w_rook_bs != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.b_bishop == DEAD){
+        if(b.data.w_bishop != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.b_pawn_ws == DEAD){
+        if(b.data.w_pawn_ws != DEAD){
             want_to_draw -= 10;
+            auto piecetype = b.data.board_0[b.data.w_pawn_ws];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw -= 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw -= 10;
+            }
         }
-        if(b.data.b_pawn_bs == DEAD){
+        if(b.data.w_pawn_bs != DEAD){
             want_to_draw -= 10;
+            auto piecetype = b.data.board_0[b.data.w_pawn_bs];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw -= 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw -= 10;
+            }
         }
 
     }
     else{
-        if(b.data.b_rook_ws == DEAD){
+        if(b.data.w_rook_ws != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.b_rook_bs == DEAD){
+        if(b.data.w_rook_bs != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.b_bishop == DEAD){
+        if(b.data.w_bishop != DEAD){
             want_to_draw += 20;
         }
-        if(b.data.b_pawn_ws == DEAD){
+        if(b.data.w_pawn_ws != DEAD){
             want_to_draw += 10;
+            auto piecetype = b.data.board_0[b.data.w_pawn_ws];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw += 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw += 10;
+            }
         }
-        if(b.data.b_pawn_bs == DEAD){
+        if(b.data.w_pawn_bs != DEAD){
             want_to_draw += 10;
+            auto piecetype = b.data.board_0[b.data.w_pawn_bs];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw += 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw += 10;
+            }
         }
-        if(b.data.w_rook_ws == DEAD){
+        if(b.data.b_rook_ws != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.w_rook_bs == DEAD){
+        if(b.data.b_rook_bs != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.w_bishop == DEAD){
+        if(b.data.b_bishop != DEAD){
             want_to_draw -= 20;
         }
-        if(b.data.w_pawn_ws == DEAD){
+        if(b.data.b_pawn_ws != DEAD){
             want_to_draw -= 10;
+            auto piecetype = b.data.board_0[b.data.b_pawn_ws];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw -= 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw -= 10;
+            }
         }
-        if(b.data.w_pawn_bs == DEAD){
+        if(b.data.b_pawn_bs != DEAD){
             want_to_draw -= 10;
+            auto piecetype = b.data.board_0[b.data.b_pawn_bs];
+            if((piecetype & ROOK) == piecetype){
+                want_to_draw -= 10;
+            }
+            else if((piecetype & BISHOP) == piecetype){
+                want_to_draw -= 10;
+            }
         }
 
     }
     return want_to_draw * 100;
 }
 
-std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
+std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             bool maximizingPlayer,
-            int64_t  alpha,
-            int64_t beta,
+            std::pair<int64_t, int16_t>  alpha,
+            std::pair<int64_t, int16_t> beta,
             std::pair<U8,int> last_killed_data)
 {
     // Terminating condition. i.e
@@ -550,7 +606,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
             
             b.do_move(m);
             std::pair<std::pair<int64_t, int16_t>, U16> val;
-            prev_boards.push_back(board_encode(b));
+            prev_boards.emplace_back(board_encode(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
                 val = {{-draw_heuristic(b),-depth},0}; //
             }
@@ -571,7 +627,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
                 best.first = val.first;
                 best.second = m;
             }
-            alpha = std::max(alpha, best.first.first);
+            alpha = std::max(alpha, best.first);
  
             // Alpha Beta Pruning
             if (beta <= alpha)
@@ -587,7 +643,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
         for (auto m : moves) {
             totalnodes++;
             b.do_move(m);
-            prev_boards.push_back(board_encode(b));
+            prev_boards.emplace_back(board_encode(b));
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
                 val = {{draw_heuristic(b), -depth}, 0}; 
@@ -609,7 +665,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
                 best.first = val.first;
                 best.second = m;
             }
-            beta = std::min(beta, best.first.first);
+            beta = std::min(beta, best.first);
  
             // Alpha Beta Pruning
             if (beta <= alpha)
@@ -630,7 +686,7 @@ void Engine::find_best_move(const Board& b) {
     }
     else {
         Board search_board = b;
-        prev_boards.push_back(board_encode(b));
+        prev_boards.emplace_back(board_encode(b));
         std::vector<U16> moves;
 
         std::cout << std::endl;
@@ -646,7 +702,7 @@ void Engine::find_best_move(const Board& b) {
 
         totalnodes = 0;
 
-        auto search_result = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-100), std::make_pair(MAX,100),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
 
         std::cout<<"Total nodes: "<<totalnodes<<std::endl;
 
@@ -671,10 +727,8 @@ void Engine::find_best_move(const Board& b) {
                 defending_nature = std::max(defending_nature,int64_t(20));
                 attacking_nature = std::min(attacking_nature,int64_t(80));
             }
-            prev_boards.push_back(board_encode(search_board));
+            prev_boards.emplace_back(board_encode(search_board));
         }
-
     }
     return;
 }
-

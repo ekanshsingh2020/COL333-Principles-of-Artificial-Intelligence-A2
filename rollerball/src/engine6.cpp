@@ -561,10 +561,10 @@ int64_t draw_heuristic(Board &b){
     return want_to_draw * 100;
 }
 
-std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
+std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             bool maximizingPlayer,
-            int64_t  alpha,
-            int64_t beta,
+            std::pair<int64_t, int16_t>  alpha,
+            std::pair<int64_t, int16_t> beta,
             std::pair<U8,int> last_killed_data)
 {
     // Terminating condition. i.e
@@ -627,7 +627,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
                 best.first = val.first;
                 best.second = m;
             }
-            alpha = std::max(alpha, best.first.first);
+            alpha = std::max(alpha, best.first);
  
             // Alpha Beta Pruning
             if (beta <= alpha)
@@ -665,7 +665,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
                 best.first = val.first;
                 best.second = m;
             }
-            beta = std::min(beta, best.first.first);
+            beta = std::min(beta, best.first);
  
             // Alpha Beta Pruning
             if (beta <= alpha)
@@ -702,7 +702,7 @@ void Engine::find_best_move(const Board& b) {
 
         totalnodes = 0;
 
-        auto search_result = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-100), std::make_pair(MAX,100),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
 
         std::cout<<"Total nodes: "<<totalnodes<<std::endl;
 
@@ -729,18 +729,6 @@ void Engine::find_best_move(const Board& b) {
             }
             prev_boards.emplace_back(board_encode(search_board));
         }
-        // if(b.data.player_to_play != WHITE){
-        //     auto oppkingmoves = search_board._get_pseudolegal_moves_for_piece(b.data.b_king);
-        //     for(auto m : oppkingmoves){
-        //         std::cout<<getx(getp1(m))<<" "<<gety(getp1(m))<<std::endl;                
-        //     }
-        // }
-        // else{
-        //     auto oppkingmoves = search_board._get_pseudolegal_moves_for_piece(b.data.w_king);
-        //     for(auto m : oppkingmoves){
-        //         std::cout<<getx(getp1(m))<<" "<<gety(getp1(m))<<std::endl;                
-        //     }
-        // }
     }
     return;
 }
