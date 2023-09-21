@@ -50,6 +50,8 @@ constexpr U8 id[64] = {
     56, 57, 58, 59, 60, 61, 62, 63
 };
 
+int64_t totalnodes = 0;
+
 std::string board_encode(const Board& b){
     std::string encoding = "";
 
@@ -503,7 +505,7 @@ int64_t draw_heuristic(Board &b){
     return want_to_draw * 100;
 }
 
-std::pair<std::pair<int64_t, int8_t>,U16> minimax(Board &b,int depth,
+std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int depth,
             bool maximizingPlayer,
             int64_t  alpha,
             int64_t beta,
@@ -527,6 +529,9 @@ std::pair<std::pair<int64_t, int8_t>,U16> minimax(Board &b,int depth,
 
     if (depth == 3) {
         auto value = heuristic(b);
+        if(depth % 2 == 0){
+            value = -value;
+        }
         if( value>0 )
             return std::make_pair(std::make_pair(value,-depth), 0);
         else
@@ -536,17 +541,18 @@ std::pair<std::pair<int64_t, int8_t>,U16> minimax(Board &b,int depth,
 
     if (maximizingPlayer)
     {
-        std::pair<std::pair<int64_t, int8_t>, U16>  best = {{MIN,-100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MIN,-100}, *moves.begin()};
  
         // Recur for left and
         // right children
         for (auto m : moves) {
+            totalnodes++;
             
             b.do_move(m);
-            std::pair<std::pair<int64_t, int8_t>, U16> val;
+            std::pair<std::pair<int64_t, int16_t>, U16> val;
             prev_boards.push_back(board_encode(b));
-            if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
-                val = {{draw_heuristic(b),-depth},0}; //
+            if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
+                val = {{-draw_heuristic(b),-depth},0}; //
             }
             else{
                 val = minimax(b, depth + 1,
@@ -576,15 +582,15 @@ std::pair<std::pair<int64_t, int8_t>,U16> minimax(Board &b,int depth,
     }
     else
     {
-        std::pair<std::pair<int64_t, int8_t>, U16>  best = {{MAX,100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MAX,100}, *moves.begin()};
 
         for (auto m : moves) {
-            
+            totalnodes++;
             b.do_move(m);
             prev_boards.push_back(board_encode(b));
-            std::pair<std::pair<int64_t, int8_t>, U16> val;
-            if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 2){
-                val = {{-draw_heuristic(b), -depth}, 0}; 
+            std::pair<std::pair<int64_t, int16_t>, U16> val;
+            if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
+                val = {{draw_heuristic(b), -depth}, 0}; 
             }
             else{
                 val = minimax(b, depth + 1,
@@ -638,7 +644,11 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = moves[0];
 
+        totalnodes = 0;
+
         auto search_result = minimax(search_board, 0, true, MIN, MAX,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+
+        std::cout<<"Total nodes: "<<totalnodes<<std::endl;
 
         this->best_move = search_result.second;
 
