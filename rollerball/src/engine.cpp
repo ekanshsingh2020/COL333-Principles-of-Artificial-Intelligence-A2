@@ -86,14 +86,14 @@ std::string board_encode(const Board& b){
 
 bool ge_operator(const std::pair<int64_t,int16_t> a, const std::pair<int64_t,int16_t> b){
     if(a.first != b.first){
-        return a.second > b.second;
+        return (a.first > b.first);
     }
     else if(a.first < 0){
-        return a.second >= b.second;
+        return (a.second >= b.second);
     }
-    else{
-        return a.second <= b.second;
-    }
+    
+    return (a.second <= b.second);
+    
 }
 
 bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
@@ -611,6 +611,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         for (auto m : moves) {
             totalnodes++;
             
+            std::string board_str = all_boards_to_str(b);
             b.do_move(m);
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             prev_boards.emplace_back(board_encode(b));
@@ -626,7 +627,8 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
 
             undo_last_move(b,m);
-            
+            std::string board_str1 = all_boards_to_str(b);    
+            assert(board_str == board_str1);
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -635,7 +637,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
                 best.second = m;
             }
             if(ge_operator(best.first,alpha))
-                alpha = best.first;
+                alpha = best.first; 
  
             // Alpha Beta Pruning
             if (ge_operator(alpha,beta))
@@ -650,6 +652,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
 
         for (auto m : moves) {
             totalnodes++;
+            std::string board_str = all_boards_to_str(b);
             b.do_move(m);
             prev_boards.emplace_back(board_encode(b));
             std::pair<std::pair<int64_t, int16_t>, U16> val;
@@ -664,7 +667,8 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
             
             undo_last_move(b,m);
-            
+            std::string board_str1 = all_boards_to_str(b);    
+            assert(board_str == board_str1);
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -725,16 +729,26 @@ void Engine::find_best_move(const Board& b) {
         if(this->best_move != 0){
             search_board.do_move(this->best_move);
             if(heuristic(search_board) < 0){
-                attacking_nature-=2;
-                defending_nature+=2;
-                attacking_nature = std::max(attacking_nature,int64_t(20));
-                defending_nature = std::min(defending_nature,int64_t(80));
+                if(attacking_nature > defending_nature){
+                    std::swap(attacking_nature,defending_nature);
+                }
+                else{
+                    attacking_nature-=2;
+                    defending_nature+=2;
+                    attacking_nature = std::max(attacking_nature,int64_t(48));
+                    defending_nature = std::min(defending_nature,int64_t(52));
+                }
             }
             else{
-                attacking_nature+=2;
-                defending_nature-=2;
-                defending_nature = std::max(defending_nature,int64_t(20));
-                attacking_nature = std::min(attacking_nature,int64_t(80));
+                if(attacking_nature < defending_nature){
+                    std::swap(attacking_nature,defending_nature);
+                }
+                else{
+                    attacking_nature+=2;
+                    defending_nature-=2;
+                    defending_nature = std::max(defending_nature,int64_t(48));
+                    attacking_nature = std::min(attacking_nature,int64_t(52));
+                }
             }
             prev_boards.emplace_back(board_encode(search_board));
         }
