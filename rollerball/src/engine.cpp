@@ -84,7 +84,17 @@ std::string board_encode(const Board& b){
     return encoding;
 }
 
-
+bool ge_operator(const std::pair<int64_t,int16_t> a, const std::pair<int64_t,int16_t> b){
+    if(a.first != b.first){
+        return a.second > b.second;
+    }
+    else if(a.first < 0){
+        return a.second >= b.second;
+    }
+    else{
+        return a.second <= b.second;
+    }
+}
 
 bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
 
@@ -574,13 +584,13 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         if(maximizingPlayer)
             return std::make_pair(std::make_pair(MIN,depth),0);
         else
-            return std::make_pair(std::make_pair(MAX,-depth),0);
+            return std::make_pair(std::make_pair(MAX,depth),0);
     }
     else if(moves.size() == 0){
         if(maximizingPlayer)
-            return std::make_pair(std::make_pair(draw_heuristic(b),-depth),0);
+            return std::make_pair(std::make_pair(draw_heuristic(b),depth),0);
         else
-            return std::make_pair(std::make_pair(-draw_heuristic(b),-depth),0);
+            return std::make_pair(std::make_pair(-draw_heuristic(b),depth),0);
     }
 
     if (depth == 3) {
@@ -588,16 +598,13 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         if(depth % 2 == 0){
             value = -value;
         }
-        if( value>0 )
-            return std::make_pair(std::make_pair(value,-depth), 0);
-        else
-            return std::make_pair(std::make_pair(value ,depth), 0);
+        return std::make_pair(std::make_pair(value,depth), 0);
     }
  
 
     if (maximizingPlayer)
     {
-        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MIN,-100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MIN,-1}, *moves.begin()};
  
         // Recur for left and
         // right children
@@ -608,7 +615,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             prev_boards.emplace_back(board_encode(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
-                val = {{-draw_heuristic(b),-depth},0}; //
+                val = {{-draw_heuristic(b),depth},0}; //
             }
             else{
                 val = minimax(b, depth + 1,
@@ -623,14 +630,15 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
-            if(best < val) {
+            if(ge_operator(val.first,best.first)) {
                 best.first = val.first;
                 best.second = m;
             }
-            alpha = std::max(alpha, best.first);
+            if(ge_operator(best.first,alpha))
+                alpha = best.first;
  
             // Alpha Beta Pruning
-            if (beta <= alpha)
+            if (ge_operator(alpha,beta))
                 break;
         }
         
@@ -638,7 +646,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
     }
     else
     {
-        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MAX,100}, *moves.begin()};
+        std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MAX,-1}, *moves.begin()};
 
         for (auto m : moves) {
             totalnodes++;
@@ -646,7 +654,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             prev_boards.emplace_back(board_encode(b));
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
-                val = {{draw_heuristic(b), -depth}, 0}; 
+                val = {{draw_heuristic(b), depth}, 0}; 
             }
             else{
                 val = minimax(b, depth + 1,
@@ -661,14 +669,15 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.last_killed_piece_idx = last_killed_data.second;
             
 
-            if(best > val) {
+            if(ge_operator(best.first,val.first)) {
                 best.first = val.first;
                 best.second = m;
             }
-            beta = std::min(beta, best.first);
+            if(ge_operator(beta,best.first))
+                beta = best.first;
  
             // Alpha Beta Pruning
-            if (beta <= alpha)
+            if (ge_operator(alpha,beta))
                 break;
         }
         
@@ -702,7 +711,7 @@ void Engine::find_best_move(const Board& b) {
 
         totalnodes = 0;
 
-        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-100), std::make_pair(MAX,100),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
 
         std::cout<<"Total nodes: "<<totalnodes<<std::endl;
 
