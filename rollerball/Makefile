@@ -18,6 +18,13 @@ rollerball:
 	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine6.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_engine6
 	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine_random.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_engine_random
 
+roll:
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/engine.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_engine
+
+rollcur:
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(INCLUDES) src/server.cpp src/board.cpp src/enginecur.cpp src/rollerball.cpp src/uciws.cpp -lpthread -o bin/rollerball_enginecur
 
 rollerball_py:
 	mkdir -p bin

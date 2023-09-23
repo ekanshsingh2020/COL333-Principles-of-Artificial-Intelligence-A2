@@ -572,16 +572,16 @@ int64_t draw_heuristic(Board &b){
     return want_to_draw * 100;
 }
 
+int16_t maxDepth=3;
+
 std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             bool maximizingPlayer,
             std::pair<int64_t, int16_t>  alpha,
             std::pair<int64_t, int16_t> beta,
-            std::pair<U8,int> last_killed_data)
+            std::pair<U8,int> last_killed_data, Engine* eng)
 {
     // Terminating condition. i.e
     // leaf node is reached
-
-    // access the search variable in hpp file
 
     auto moves = b.get_legal_moves();
     if(moves.size() == 0 && b.in_check()) {
@@ -597,7 +597,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             return std::make_pair(std::make_pair(-draw_heuristic(b),depth),0);
     }
 
-    if (depth == 3) {
+    if (depth == maxDepth) {
         auto value = heuristic(b);
         if(depth % 2 == 0){
             value = -value;
@@ -624,7 +624,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             }
             else{
                 val = minimax(b, depth + 1,
-                                false, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+                                false, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),eng);
             }
             prev_boards.pop_back();
 
@@ -646,6 +646,20 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             // Alpha Beta Pruning
             if (ge_operator(alpha,beta))
                 break;
+
+            // to tackle time limit
+            if(!eng->search)
+            {
+                auto value = heuristic(b);
+                if(depth % 2 == 0){
+                    value = -value;
+                }
+                if(ge_operator(std::make_pair(value,depth),best.first)){
+                    best.first = std::make_pair(value,depth);
+                    best.second = m;
+                }
+                return best;
+            }
         }
         
         return best;
@@ -665,7 +679,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             }
             else{
                 val = minimax(b, depth + 1,
-                                true, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+                                true, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),eng);
             }
             prev_boards.pop_back();
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
@@ -687,10 +701,24 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             // Alpha Beta Pruning
             if (ge_operator(alpha,beta))
                 break;
+
+            // to tackle time limit
+            if(!eng->search)
+            {
+                auto value = heuristic(b);
+                if(depth % 2 == 0){
+                    value = -value;
+                }
+                if(ge_operator(best.first,std::make_pair(value,depth))){
+                    best.first = std::make_pair(value,depth);
+                    best.second = m;
+                }
+                return best;
+            }
         }
-        
         return best;
     }
+    
 }
 
 void Engine::find_best_move(const Board& b) {
@@ -719,11 +747,20 @@ void Engine::find_best_move(const Board& b) {
 
         totalnodes = 0;
         // store time
-
         auto start = std::chrono::high_resolution_clock::now();
-        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),this);
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+        if(duration.count() < 1800){
+            maxDepth++;
+        }
+        else{
+            maxDepth--;
+        }
+
+
+        std::cout<<"Max Depth is "<<maxDepth<<std::endl;
+        std::cout<<"Depth used is "<<search_result.first.second<<std::endl;
         std::cout<<"Time taken: "<<duration.count()<<"ms"<<std::endl;
         std::cout<<"Total nodes: "<<totalnodes<<std::endl;
 
