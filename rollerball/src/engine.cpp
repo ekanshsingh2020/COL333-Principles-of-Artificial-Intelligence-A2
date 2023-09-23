@@ -695,7 +695,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
 void Engine::find_best_move(const Board& b) {
 
     // pick a random move
-    
+    auto start = std::chrono::high_resolution_clock::now();
     auto moveset = b.get_legal_moves();
     if (moveset.size() == 0) {
         this->best_move = 0;
@@ -717,7 +717,6 @@ void Engine::find_best_move(const Board& b) {
         this->best_move = moves[0];
 
         // store time
-        auto start = std::chrono::high_resolution_clock::now();
         auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),this);
 
 
