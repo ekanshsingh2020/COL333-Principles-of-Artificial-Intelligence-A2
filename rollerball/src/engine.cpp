@@ -56,7 +56,7 @@ const int64_t MIN = -100000;
 int64_t attacking_nature = 50;
 int64_t defending_nature = 50;
 std::vector<std::string> prev_boards;
-int16_t maxDepth=3;
+int16_t maxDepth=2;
 
 std::string board_encode(const Board& b){
     std::string encoding = "";
@@ -691,6 +691,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
     }
     
 }
+double last_time = 0;
 
 void Engine::find_best_move(const Board& b) {
 
@@ -715,7 +716,13 @@ void Engine::find_best_move(const Board& b) {
         );
 
         this->best_move = moves[0];
-
+        int32_t branching_factor= moveset.size();
+        if(last_time*branching_factor < 2000){
+            maxDepth++;
+        }
+        else if(last_time>=1950){
+            maxDepth--;
+        }
         // store time
         auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),this);
 
@@ -751,13 +758,8 @@ void Engine::find_best_move(const Board& b) {
 
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-        int32_t branching_factor= moveset.size();
-        if(duration.count()*branching_factor < 2000){
-            maxDepth++;
-        }
-        else if(duration.count()>=1950){
-            maxDepth--;
-        }
+        last_time = duration.count();
+        
     }
     return;
 }
