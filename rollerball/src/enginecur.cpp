@@ -51,7 +51,12 @@ constexpr U8 id[64] = {
     56, 57, 58, 59, 60, 61, 62, 63
 };
 
-int64_t totalnodes = 0;
+const int64_t MAX = 100000;
+const int64_t MIN = -100000;
+int64_t attacking_nature = 50;
+int64_t defending_nature = 50;
+std::vector<std::string> prev_boards;
+int16_t maxDepth=3;
 
 std::string board_encode(const Board& b){
     std::string encoding = "";
@@ -85,16 +90,14 @@ std::string board_encode(const Board& b){
     return encoding;
 }
 
-bool ge_operator(const std::pair<int64_t,int16_t> a, const std::pair<int64_t,int16_t> b){
+bool ge_operator(const std::pair<int64_t,int16_t> & a, const std::pair<int64_t,int16_t> & b){
     if(a.first != b.first){
         return (a.first > b.first);
     }
     else if(a.first < 0){
         return (a.second >= b.second);
     }
-    
     return (a.second <= b.second);
-    
 }
 
 bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
@@ -102,9 +105,7 @@ bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
     if(std::count(opp_legal_moves.begin(),opp_legal_moves.end(), piece_pos)) {
         return true;
     }
-
     return false;
-
 }
 void undo_last_move(Board &b,U16 move) {
 
@@ -144,21 +145,8 @@ void undo_last_move(Board &b,U16 move) {
     b.data.board_90[cw_90[p1]]   = deadpiece;
     b.data.board_180[cw_180[p1]] = deadpiece;
     b.data.board_270[acw_90[p1]] = deadpiece;
-
-
-
     return;
-
 }
-
-const int64_t MAX = 100000;
-const int64_t MIN = -100000;
-
-int64_t attacking_nature = 50;
-int64_t defending_nature = 50;
-
-std::vector<std::string> prev_boards;
-
 
 int64_t heuristic(Board& b) {
     int64_t score = 0;
@@ -572,8 +560,6 @@ int64_t draw_heuristic(Board &b){
     return want_to_draw * 100;
 }
 
-int16_t maxDepth=3;
-
 std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             bool maximizingPlayer,
             std::pair<int64_t, int16_t>  alpha,
@@ -582,6 +568,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
 {
     // Terminating condition. i.e
     // leaf node is reached
+
 
     auto moves = b.get_legal_moves();
     if(moves.size() == 0 && b.in_check()) {
@@ -613,9 +600,10 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         // Recur for left and
         // right children
         for (auto m : moves) {
-            totalnodes++;
             
-            std::string board_str = all_boards_to_str(b);
+            if(!eng->search)
+                return best;
+
             b.do_move(m);
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             prev_boards.emplace_back(board_encode(b));
@@ -631,8 +619,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
 
             undo_last_move(b,m);
-            std::string board_str1 = all_boards_to_str(b);    
-            assert(board_str == board_str1);
+
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -650,14 +637,6 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             // to tackle time limit
             if(!eng->search)
             {
-                // auto value = heuristic(b);
-                // if(depth % 2 == 0){
-                //     value = -value;
-                // }
-                // if(ge_operator(std::make_pair(value,depth),best.first)){
-                //     best.first = std::make_pair(value,depth);
-                //     best.second = m;
-                // }
                 return best;
             }
         }
@@ -669,8 +648,10 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MAX,-1}, *moves.begin()};
 
         for (auto m : moves) {
-            totalnodes++;
-            std::string board_str = all_boards_to_str(b);
+
+            if(!eng->search)
+                return best;
+
             b.do_move(m);
             prev_boards.emplace_back(board_encode(b));
             std::pair<std::pair<int64_t, int16_t>, U16> val;
@@ -685,8 +666,6 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
             
             undo_last_move(b,m);
-            std::string board_str1 = all_boards_to_str(b);    
-            assert(board_str == board_str1);
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -705,14 +684,6 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             // to tackle time limit
             if(!eng->search)
             {
-                // auto value = heuristic(b);
-                // if(depth % 2 == 0){
-                //     value = -value;
-                // }
-                // if(ge_operator(best.first,std::make_pair(value,depth))){
-                //     best.first = std::make_pair(value,depth);
-                //     best.second = m;
-                // }
                 return best;
             }
         }
@@ -745,20 +716,12 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = moves[0];
 
-        totalnodes = 0;
         // store time
         auto start = std::chrono::high_resolution_clock::now();
         auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),this);
 
 
-        std::cout<<"Depth used is "<<search_result.first.second<<std::endl;
-
         this->best_move = search_result.second;
-
-        assert(all_boards_to_str(b) == all_boards_to_str(search_board));
-        assert(board_encode(b) == board_encode(search_board));
-
-        std::cout<<search_result.first.first<<" "<<search_result.first.second<<std::endl;
 
         if(this->best_move != 0){
             search_board.do_move(this->best_move);
@@ -786,16 +749,16 @@ void Engine::find_best_move(const Board& b) {
             }
             prev_boards.emplace_back(board_encode(search_board));
         }
+
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-        int16_t branching_factor= moveset.size();
+        int32_t branching_factor= moveset.size();
         if(duration.count()*branching_factor < 2000){
             maxDepth++;
         }
         else if(duration.count()>=1950){
             maxDepth--;
         }
-        std::cout<<"Max Depth is "<<maxDepth<<std::endl;
         std::cout<<"Time taken: "<<duration.count()<<"ms"<<std::endl;
     }
     return;

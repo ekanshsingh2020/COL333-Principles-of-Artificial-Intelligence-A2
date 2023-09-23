@@ -51,7 +51,12 @@ constexpr U8 id[64] = {
     56, 57, 58, 59, 60, 61, 62, 63
 };
 
-int64_t totalnodes = 0;
+const int64_t MAX = 100000;
+const int64_t MIN = -100000;
+int64_t attacking_nature = 50;
+int64_t defending_nature = 50;
+std::vector<std::string> prev_boards;
+int16_t maxDepth=3;
 
 std::string board_encode(const Board& b){
     std::string encoding = "";
@@ -85,16 +90,14 @@ std::string board_encode(const Board& b){
     return encoding;
 }
 
-bool ge_operator(const std::pair<int64_t,int16_t> a, const std::pair<int64_t,int16_t> b){
+bool ge_operator(const std::pair<int64_t,int16_t> & a, const std::pair<int64_t,int16_t> & b){
     if(a.first != b.first){
         return (a.first > b.first);
     }
     else if(a.first < 0){
         return (a.second >= b.second);
     }
-    
     return (a.second <= b.second);
-    
 }
 
 bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
@@ -102,9 +105,7 @@ bool under_threat(std::vector<U8> &opp_legal_moves, U8 piece_pos) {
     if(std::count(opp_legal_moves.begin(),opp_legal_moves.end(), piece_pos)) {
         return true;
     }
-
     return false;
-
 }
 void undo_last_move(Board &b,U16 move) {
 
@@ -144,21 +145,8 @@ void undo_last_move(Board &b,U16 move) {
     b.data.board_90[cw_90[p1]]   = deadpiece;
     b.data.board_180[cw_180[p1]] = deadpiece;
     b.data.board_270[acw_90[p1]] = deadpiece;
-
-
-
     return;
-
 }
-
-const int64_t MAX = 100000;
-const int64_t MIN = -100000;
-
-int64_t attacking_nature = 50;
-int64_t defending_nature = 50;
-
-std::vector<std::string> prev_boards;
-
 
 int64_t heuristic(Board& b) {
     int64_t score = 0;
@@ -184,38 +172,38 @@ int64_t heuristic(Board& b) {
 
         // opponent pieces
         if(b.in_check()){
-            score += 50 * attacking_nature;
+            score += 40 * attacking_nature;
         }
         if(b.data.b_rook_ws != DEAD){
-            score -= 20 * attacking_nature;
+            score -= 30 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.b_rook_ws)){
-                score += 5 * attacking_nature;
+                score += 10 * attacking_nature;
             }
         }
         if(b.data.b_rook_bs != DEAD){
-            score -= 20 * attacking_nature;
+            score -= 30 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.b_rook_bs)){
-                score += 5 * attacking_nature;
+                score += 10 * attacking_nature;
             }
         }
         if(b.data.b_bishop != DEAD){
-            score -= 30 * attacking_nature;
+            score -= 20 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.b_bishop)){
-                score += 8 * attacking_nature;
+                score += 5 * attacking_nature;
             }
         }
         if(b.data.b_pawn_ws != DEAD){
             auto piecetype = b.data.board_0[b.data.b_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                score -= 20 * attacking_nature;
+                score -= 30 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.b_pawn_ws)){
-                   score += 5 * attacking_nature;
+                   score += 10 * attacking_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score -= 30 * attacking_nature;
+                score -= 20 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.b_pawn_ws)){
-                   score += 8 * attacking_nature;
+                   score += 5 * attacking_nature;
                 }
             }
             else{
@@ -229,15 +217,15 @@ int64_t heuristic(Board& b) {
         if(b.data.b_pawn_bs != DEAD){
             auto piecetype = b.data.board_0[b.data.b_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                score -= 20 * attacking_nature;
+                score -= 30 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.b_pawn_bs)){
-                   score += 5 * attacking_nature;
+                   score += 10 * attacking_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score -= 30 * attacking_nature;
+                score -= 20 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.b_pawn_bs)){
-                   score += 8 * attacking_nature;
+                   score += 5 * attacking_nature;
                 }
             }
             else{
@@ -250,35 +238,35 @@ int64_t heuristic(Board& b) {
 
         // my pieces
         if(b.data.w_rook_ws != DEAD){
-            score += 20 * defending_nature;
+            score += 30 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.w_rook_ws)){
-                score -= 5 * defending_nature;
+                score -= 10 * defending_nature;
             }
         }
         if(b.data.w_rook_bs != DEAD){
-            score += 20 * defending_nature;
+            score += 30 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.w_rook_bs)){
-                score -= 5 * defending_nature;
+                score -= 10 * defending_nature;
             }
         }
         if(b.data.w_bishop != DEAD){
-            score += 30 * defending_nature;
+            score += 20 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.w_bishop)){
-                score -= 8 * defending_nature;
+                score -= 5 * defending_nature;
             }
         }
         if(b.data.w_pawn_ws != DEAD){
             auto piecetype = b.data.board_0[b.data.w_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                score += 20 * defending_nature;
+                score += 30 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.w_pawn_ws)){
-                   score -= 5 * defending_nature;
+                   score -= 10 * defending_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score += 30 * defending_nature;
+                score += 20 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.w_pawn_ws)){
-                   score -= 8 * defending_nature;
+                   score -= 5 * defending_nature;
                 }
             }
             else{
@@ -291,15 +279,15 @@ int64_t heuristic(Board& b) {
         if(b.data.w_pawn_bs != DEAD){
             auto piecetype = b.data.board_0[b.data.w_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                score += 20 * defending_nature;
+                score += 30 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.w_pawn_bs)){
-                   score -= 5 * defending_nature;
+                   score -= 10 * defending_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score += 30 * defending_nature;
+                score += 20 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.w_pawn_bs)){
-                   score -= 8 * defending_nature;
+                   score -= 5 * defending_nature;
                 }
             }
             else{
@@ -316,38 +304,38 @@ int64_t heuristic(Board& b) {
 
         // opponent pieces
         if(b.in_check()){
-            score += 50 * attacking_nature;
+            score += 40 * attacking_nature;
         }
         if(b.data.w_rook_ws != DEAD){
-            score -= 20 * attacking_nature;
+            score -= 30 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.w_rook_ws)){
-                score += 5 * attacking_nature;
+                score += 10 * attacking_nature;
             }
         }
         if(b.data.w_rook_bs != DEAD){
-            score -= 20 * attacking_nature;
+            score -= 30 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.w_rook_bs)){
-                score += 5 * attacking_nature;
+                score += 10 * attacking_nature;
             }
         }
         if(b.data.w_bishop != DEAD){
-            score -= 30 * attacking_nature;
+            score -= 20 * attacking_nature;
             if(under_threat(my_attack_positions,b.data.w_bishop)){
-                score += 8 * attacking_nature;
+                score += 5 * attacking_nature;
             }
         }
         if(b.data.w_pawn_ws != DEAD){
             auto piecetype = b.data.board_0[b.data.w_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                score -= 20 * attacking_nature;
+                score -= 30 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.w_pawn_ws)){
-                   score += 5 * attacking_nature;
+                   score += 10 * attacking_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score -= 30 * attacking_nature;
+                score -= 20 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.w_pawn_ws)){
-                   score += 8 * attacking_nature;
+                   score += 5 * attacking_nature;
                 }
             }
             else{
@@ -360,15 +348,15 @@ int64_t heuristic(Board& b) {
         if(b.data.w_pawn_bs != DEAD){
             auto piecetype = b.data.board_0[b.data.w_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                score -= 20 * attacking_nature;
+                score -= 30 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.w_pawn_bs)){
-                   score += 5 * attacking_nature;
+                   score += 10 * attacking_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score -= 30 * attacking_nature;
+                score -= 20 * attacking_nature;
                 if(under_threat(my_attack_positions,b.data.w_pawn_bs)){
-                   score += 8 * attacking_nature;
+                   score += 5 * attacking_nature;
                 }
             }
             else{
@@ -381,35 +369,35 @@ int64_t heuristic(Board& b) {
 
         // my pieces
         if(b.data.b_rook_ws != DEAD){
-            score += 20 * defending_nature;
+            score += 30 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.b_rook_ws)){
-                score -= 5 * defending_nature;
+                score -= 10 * defending_nature;
             }
         }
         if(b.data.b_rook_bs != DEAD){
-            score += 20 * defending_nature;
+            score += 30 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.b_rook_bs)){
-                score -= 5 * defending_nature;
+                score -= 10 * defending_nature;
             }
         }
         if(b.data.b_bishop != DEAD){
-            score += 30 * defending_nature;
+            score += 20 * defending_nature;
             if(under_threat(opp_attack_positions,b.data.b_bishop)){
-                score -= 8 * defending_nature;
+                score -= 5 * defending_nature;
             }
         }
         if(b.data.b_pawn_ws != DEAD){
             auto piecetype = b.data.board_0[b.data.b_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                score += 20 * defending_nature;
+                score += 30 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.b_pawn_ws)){
-                   score -= 5 * defending_nature;
+                   score -= 10 * defending_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score += 30 * defending_nature;
+                score += 20 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.b_pawn_ws)){
-                   score -= 8 * defending_nature;
+                   score -= 5 * defending_nature;
                 }
             }
             else{
@@ -422,15 +410,15 @@ int64_t heuristic(Board& b) {
         if(b.data.b_pawn_bs != DEAD){
             auto piecetype = b.data.board_0[b.data.b_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                score += 20 * defending_nature;
+                score += 30 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.b_pawn_bs)){
-                   score -= 5 * defending_nature;
+                   score -= 10 * defending_nature;
                 }
             }
             else if((piecetype & BISHOP) == piecetype){
-                score += 30 * defending_nature;
+                score += 20 * defending_nature;
                 if(under_threat(opp_attack_positions,b.data.b_pawn_bs)){
-                   score -= 8 * defending_nature;
+                   score -= 5 * defending_nature;
                 }
             }
             else{
@@ -449,122 +437,122 @@ int64_t draw_heuristic(Board &b){
     int64_t want_to_draw = 0;
     if(b.data.player_to_play == WHITE){
         if(b.data.b_rook_ws != DEAD){
-            want_to_draw += 20;
+            want_to_draw += 30;
         }
         if(b.data.b_rook_bs != DEAD){
-            want_to_draw += 20;
+            want_to_draw += 30;
         }
         if(b.data.b_bishop != DEAD){
-            want_to_draw += 30;
+            want_to_draw += 20;
         }
         if(b.data.b_pawn_ws != DEAD){
             want_to_draw += 5;
             auto piecetype = b.data.board_0[b.data.b_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw += 15;
+                want_to_draw += 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw += 25;
+                want_to_draw += 15;
             }
         }
         if(b.data.b_pawn_bs != DEAD){
             want_to_draw += 5;
             auto piecetype = b.data.board_0[b.data.b_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw += 15;
+                want_to_draw += 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw += 25;
+                want_to_draw += 15;
             }
         }
         if(b.data.w_rook_ws != DEAD){
-            want_to_draw -= 20;
+            want_to_draw -= 30;
         }
         if(b.data.w_rook_bs != DEAD){
-            want_to_draw -= 20;
+            want_to_draw -= 30;
         }
         if(b.data.w_bishop != DEAD){
-            want_to_draw -= 30;
+            want_to_draw -= 20;
         }
         if(b.data.w_pawn_ws != DEAD){
             want_to_draw -= 5;
             auto piecetype = b.data.board_0[b.data.w_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw -= 15;
+                want_to_draw -= 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw -= 25;
+                want_to_draw -= 15;
             }
         }
         if(b.data.w_pawn_bs != DEAD){
             want_to_draw -= 5;
             auto piecetype = b.data.board_0[b.data.w_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw -= 15;
+                want_to_draw -= 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw -= 25;
+                want_to_draw -= 15;
             }
         }
 
     }
     else{
         if(b.data.w_rook_ws != DEAD){
-            want_to_draw += 20;
+            want_to_draw += 30;
         }
         if(b.data.w_rook_bs != DEAD){
-            want_to_draw += 20;
+            want_to_draw += 30;
         }
         if(b.data.w_bishop != DEAD){
-            want_to_draw += 30;
+            want_to_draw += 20;
         }
         if(b.data.w_pawn_ws != DEAD){
             want_to_draw += 5;
             auto piecetype = b.data.board_0[b.data.w_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw += 15;
+                want_to_draw += 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw += 25;
+                want_to_draw += 15;
             }
         }
         if(b.data.w_pawn_bs != DEAD){
             want_to_draw += 5;
             auto piecetype = b.data.board_0[b.data.w_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw += 15;
+                want_to_draw += 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw += 25;
+                want_to_draw += 15;
             }
         }
         if(b.data.b_rook_ws != DEAD){
-            want_to_draw -= 20;
+            want_to_draw -= 30;
         }
         if(b.data.b_rook_bs != DEAD){
-            want_to_draw -= 20;
+            want_to_draw -= 30;
         }
         if(b.data.b_bishop != DEAD){
-            want_to_draw -= 30;
+            want_to_draw -= 20;
         }
         if(b.data.b_pawn_ws != DEAD){
             want_to_draw -= 5;
             auto piecetype = b.data.board_0[b.data.b_pawn_ws];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw -= 15;
+                want_to_draw -= 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw -= 25;
+                want_to_draw -= 15;
             }
         }
         if(b.data.b_pawn_bs != DEAD){
             want_to_draw -= 5;
             auto piecetype = b.data.board_0[b.data.b_pawn_bs];
             if((piecetype & ROOK) == piecetype){
-                want_to_draw -= 15;
+                want_to_draw -= 25;
             }
             else if((piecetype & BISHOP) == piecetype){
-                want_to_draw -= 25;
+                want_to_draw -= 15;
             }
         }
 
@@ -576,12 +564,11 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             bool maximizingPlayer,
             std::pair<int64_t, int16_t>  alpha,
             std::pair<int64_t, int16_t> beta,
-            std::pair<U8,int> last_killed_data)
+            std::pair<U8,int> last_killed_data, Engine* eng)
 {
     // Terminating condition. i.e
     // leaf node is reached
 
-    // access the search variable in hpp file
 
     auto moves = b.get_legal_moves();
     if(moves.size() == 0 && b.in_check()) {
@@ -597,7 +584,7 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             return std::make_pair(std::make_pair(-draw_heuristic(b),depth),0);
     }
 
-    if (depth == 3) {
+    if (depth == maxDepth) {
         auto value = heuristic(b);
         if(depth % 2 == 0){
             value = -value;
@@ -613,26 +600,26 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         // Recur for left and
         // right children
         for (auto m : moves) {
-            totalnodes++;
             
-            std::string board_str = all_boards_to_str(b);
+            if(!eng->search)
+                return best;
+
             b.do_move(m);
             std::pair<std::pair<int64_t, int16_t>, U16> val;
             prev_boards.emplace_back(board_encode(b));
             if(std::count(prev_boards.begin(),prev_boards.end(),board_encode(b)) == 3){
-                val = {{-draw_heuristic(b),depth},0}; //
+                val = {{-draw_heuristic(b),depth},0}; 
             }
             else{
                 val = minimax(b, depth + 1,
-                                false, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+                                false, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),eng);
             }
             prev_boards.pop_back();
 
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
 
             undo_last_move(b,m);
-            std::string board_str1 = all_boards_to_str(b);    
-            assert(board_str == board_str1);
+
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -644,8 +631,14 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
                 alpha = best.first; 
  
             // Alpha Beta Pruning
-            if (ge_operator(alpha,beta))
-                break;
+            // if (alpha.first >= beta.first)
+            //     break;
+
+            // to tackle time limit
+            if(!eng->search)
+            {
+                return best;
+            }
         }
         
         return best;
@@ -655,8 +648,10 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
         std::pair<std::pair<int64_t, int16_t>, U16>  best = {{MAX,-1}, *moves.begin()};
 
         for (auto m : moves) {
-            totalnodes++;
-            std::string board_str = all_boards_to_str(b);
+
+            if(!eng->search)
+                return best;
+
             b.do_move(m);
             prev_boards.emplace_back(board_encode(b));
             std::pair<std::pair<int64_t, int16_t>, U16> val;
@@ -665,14 +660,12 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
             }
             else{
                 val = minimax(b, depth + 1,
-                                true, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
+                                true, alpha, beta,std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),eng);
             }
             prev_boards.pop_back();
             b.data.player_to_play = (PlayerColor)(b.data.player_to_play ^ (WHITE | BLACK));
             
             undo_last_move(b,m);
-            std::string board_str1 = all_boards_to_str(b);    
-            assert(board_str == board_str1);
             b.data.last_killed_piece = last_killed_data.first;
             b.data.last_killed_piece_idx = last_killed_data.second;
             
@@ -685,12 +678,18 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
                 beta = best.first;
  
             // Alpha Beta Pruning
-            if (ge_operator(alpha,beta))
-                break;
+            // if (alpha.first >= beta.first)
+            //     break;
+
+            // to tackle time limit
+            if(!eng->search)
+            {
+                return best;
+            }
         }
-        
         return best;
     }
+    
 }
 
 void Engine::find_best_move(const Board& b) {
@@ -717,22 +716,12 @@ void Engine::find_best_move(const Board& b) {
 
         this->best_move = moves[0];
 
-        totalnodes = 0;
         // store time
-
         auto start = std::chrono::high_resolution_clock::now();
-        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx));
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-        std::cout<<"Time taken: "<<duration.count()<<"ms"<<std::endl;
-        std::cout<<"Total nodes: "<<totalnodes<<std::endl;
+        auto search_result = minimax(search_board, 0, true, std::make_pair(MIN,-1), std::make_pair(MAX,-1),std::make_pair(b.data.last_killed_piece, b.data.last_killed_piece_idx),this);
+
 
         this->best_move = search_result.second;
-
-        assert(all_boards_to_str(b) == all_boards_to_str(search_board));
-        assert(board_encode(b) == board_encode(search_board));
-
-        std::cout<<search_result.first.first<<" "<<search_result.first.second<<std::endl;
 
         if(this->best_move != 0){
             search_board.do_move(this->best_move);
@@ -759,6 +748,16 @@ void Engine::find_best_move(const Board& b) {
                 }
             }
             prev_boards.emplace_back(board_encode(search_board));
+        }
+
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+        int32_t branching_factor= moveset.size();
+        if(duration.count()*branching_factor < 2000){
+            maxDepth++;
+        }
+        else if(duration.count()>=1950){
+            maxDepth--;
         }
     }
     return;

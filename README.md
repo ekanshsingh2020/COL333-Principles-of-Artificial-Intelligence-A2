@@ -1,8 +1,8 @@
-# COL333_A2
-- Adaptive nature of attack and defence, based on board status
-- How to get the time limit
-- Time
-- Branching factor optimization
-- End time optimization
-- Rook posn 
-- Calling the draw_heuristic from heuristic
+Atif Anwer 2020EE10479
+Ekansh Singh 2020EE10490
+
+Discussed with:
+Tanish Gupta 2020CS10397
+Sharda Kriti Modanwal 2020EE10552
+
+We just implemented minimax with evaluation function
