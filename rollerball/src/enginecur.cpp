@@ -644,8 +644,8 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
                 alpha = best.first; 
  
             // Alpha Beta Pruning
-            if (ge_operator(alpha,beta))
-                break;
+            // if (alpha.first >= beta.first)
+            //     break;
 
             // to tackle time limit
             if(!eng->search)
@@ -699,8 +699,8 @@ std::pair<std::pair<int64_t, int16_t>,U16> minimax(Board &b,int16_t depth,
                 beta = best.first;
  
             // Alpha Beta Pruning
-            if (ge_operator(alpha,beta))
-                break;
+            // if (alpha.first >= beta.first)
+            //     break;
 
             // to tackle time limit
             if(!eng->search)
